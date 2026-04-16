@@ -1,0 +1,7 @@
+{
+  "name": "Remix: NEUROASK Assistant",
+  "description": "A futuristic, god-level AI academic operating system for math, physics, engineering, and computing.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

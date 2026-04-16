@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Information about a registered user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "displayName": { "type": "string", "description": "The user's display name." },
+        "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the user account was created." },
+        "lastLogin": { "type": "string", "format": "date-time", "description": "When the user last logged in." },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "The user's role in the system." }
+      },
+      "required": ["uid", "email", "createdAt", "lastLogin"]
+    },
+    "ChatSession": {
+      "title": "Chat Session",
+      "description": "A conversation session between the user and the AI.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the user who owns this session." },
+        "title": { "type": "string", "description": "The title of the chat session." },
+        "tag": { "type": "string", "description": "The category tag for the chat (e.g., Math, Physics)." },
+        "timestamp": { "type": "number", "description": "The creation timestamp." },
+        "lastUpdated": { "type": "number", "description": "The last update timestamp." },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["user", "model"] },
+              "parts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["userId", "title", "timestamp", "history"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles."
+    },
+    "/sessions/{sessionId}": {
+      "schema": "ChatSession",
+      "description": "Collection of chat sessions."
+    }
+  }
+}

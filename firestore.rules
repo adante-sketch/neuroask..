@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required) - Unique identifier
+    //   - email: string (required, email) - User's email
+    //   - displayName: string (optional) - User's name
+    //   - photoURL: string (optional, url) - Profile picture
+    //   - createdAt: timestamp (required) - Creation time
+    //   - lastLogin: timestamp (required) - Last login time
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "andrewnilmahr@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.uid is string && data.uid.size() > 0 && data.uid.size() < 128 &&
+             isValidEmail(data.email) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             (!('photoURL' in data) || (isValidUrl(data.photoURL) && data.photoURL.size() < 500)) &&
+             data.createdAt is timestamp &&
+             data.lastLogin is timestamp;
+    }
+
+    function isValidHistoryItem(item) {
+      return item is map &&
+             item.role in ['user', 'model'] &&
+             item.parts is list && item.parts.size() > 0 && item.parts.size() < 10 &&
+             item.parts[0].text is string && item.parts[0].text.size() < 5000;
+    }
+
+    function isValidChatSession(data) {
+      return hasRequiredFields(['userId', 'title', 'timestamp', 'history']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 500 &&
+             (data.timestamp is number || data.timestamp is timestamp) &&
+             (!('tag' in data) || (data.tag is string && data.tag.size() < 100)) &&
+             (!('lastUpdated' in data) || (data.lastUpdated is number || data.lastUpdated is timestamp)) &&
+             data.history is list && data.history.size() < 100 &&
+             data.history.all(item, isValidHistoryItem(item));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      allow create: if isOwner(userId) && 
+                      isValidUser(request.resource.data) && 
+                      hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'lastLogin', 'role']) &&
+                      (!('role' in request.resource.data) || request.resource.data.role == 'user');
+      
+      allow update: if (isOwner(userId) || isAdmin()) && 
+                      isValidUser(request.resource.data) &&
+                      hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'lastLogin', 'role']) &&
+                      (isAdmin() || request.resource.data.role == resource.data.role) &&
+                      request.resource.data.uid == resource.data.uid &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      
+      allow delete: if isAdmin();
+    }
+
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidChatSession(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && isValidChatSession(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

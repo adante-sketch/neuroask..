@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  /* Default (Dark) */
+  --color-primary: var(--accent-primary, #3b82f6);
+  --color-secondary: var(--accent-hover, #2563eb);
+  --color-surface: var(--bg-primary, #0b0f19);
+  --color-on-surface: var(--text-primary, #f9fafb);
+  --color-on-primary: #ffffff;
+}
+
+:root {
+  /* Dark Mode (Default) */
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-card: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='light'] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #eef2f7;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --accent-primary: #2563eb;
+  --accent-hover: #1d4ed8;
+  --border-color: #cbd5e1;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='neon'] {
+  --bg-primary: #05070d;
+  --bg-secondary: #0b0f19;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --text-primary: #eaf2ff;
+  --text-secondary: #a5b4fc;
+  --text-muted: #818cf8;
+  --accent-primary: #00d4ff;
+  --accent-hover: #8b5cf6;
+  --border-color: rgba(0, 212, 255, 0.2);
+  --shadow-color: rgba(0, 212, 255, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body antialiased overflow-x-hidden transition-colors duration-300;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background-color: var(--bg-card);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px 0 var(--shadow-color);
+    @apply transition-all duration-300;
+  }
+  
+  .glass-input {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    @apply transition-all duration-300;
+  }
+  
+  .btn-gradient {
+    background: linear-gradient(to r, var(--accent-primary), var(--accent-hover));
+    @apply hover:opacity-90 transition-all duration-300;
+  }
+
+  [data-theme='neon'] .btn-gradient {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  }
+
+  .neon-glow-primary {
+    box-shadow: 0 0 15px var(--accent-primary);
+    @apply transition-shadow duration-300;
+  }
+
+  [data-theme='light'] .neon-glow-primary {
+    box-shadow: 0 4px 12px var(--shadow-color);
+  }
+
+  .neon-text-primary {
+    color: var(--accent-primary);
+    filter: drop-shadow(0 0 8px var(--accent-primary));
+    @apply transition-all duration-300;
+  }
+
+  [data-theme='light'] .neon-text-primary {
+    filter: none;
+  }
+
+  .cyber-grid {
+    background-image: 
+      linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .ai-pulse {
+    animation: ai-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes ai-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+}
+
+.markdown-body {
+  color: var(--text-secondary);
+  @apply leading-relaxed transition-colors duration-300;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  color: var(--text-primary);
+  @apply font-bold mt-4 mb-2;
+}
+.markdown-body p {
+  @apply mb-4;
+}
+.markdown-body code {
+  background-color: var(--bg-secondary);
+  color: var(--accent-primary);
+  @apply px-1.5 py-0.5 rounded font-mono text-sm;
+}
+.markdown-body pre {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  @apply p-4 rounded-xl overflow-x-auto mb-4;
+}
+.markdown-body ul, .markdown-body ol {
+  @apply pl-6 mb-4 list-disc;
+}
